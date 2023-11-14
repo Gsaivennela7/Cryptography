@@ -9,7 +9,7 @@
     <style>
         .button-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* Center the buttons */
             margin-top: 20px;
         }
         .square-button {
@@ -17,7 +17,7 @@
             width: 150px;
             border: 1px solid #ddd;
             padding: 20px;
-            margin: 10px;
+            margin: 50px;
             cursor: pointer;
         }
     </style>
@@ -29,15 +29,12 @@
 
     <div class="button-container">
         <!-- Encrypt Button -->
-        <div class="square-button bg-primary text-white" onclick="redirectTo('/encrypt')">
+        <div class="square-button btn-danger text-white d-flex align-items-center" onclick="redirectTo('/encrypt')">
             <h2 class="text-center">Encrypt</h2>
         </div>
 
-        <!-- Add space between buttons for better visual separation -->
-        <div style="width: 20px;"></div>
-
         <!-- Decrypt Button -->
-        <div class="square-button bg-success text-white" onclick="redirectTo('/decrypt')">
+        <div class="square-button bg-success text-white d-flex align-items-center" onclick="redirectTo('/decrypt')">
             <h2 class="text-center">Decrypt</h2>
         </div>
     </div>

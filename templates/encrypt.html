@@ -6,26 +6,48 @@
     <title>Encryption</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .custom-form {
+            width: 50%;
+        }
+    </style>
 </head>
-<body class="container mt-5">
+<body>
 
-    <h1 class="text-center">Encryption</h1>
+    <div class="custom-form">
+        <h1 class="text-center">Encryption</h1>
+        <form action="/encrypt" method="post" class="mt-3">
+            <div class="form-group">
+                <label for="algorithm">Select Algorithm:</label>
+                <select class="form-control form-control-sm" name="algorithm" required>
+                    <option value="aes">AES</option>
+                    <option value="aes_rsa">AES_RSA</option>
+                    <option value="ecdhe">ECDHE</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="text">Text:</label>
+                <input type="text" class="form-control" name="text" required>
+            </div>
+            <div class="row">
+                <div class="col text-right">
+                    <button type="submit" class="btn btn-primary">Encrypt</button>
+            </div>
+            <div class="col text-left">
+                <a href="/" class="btn btn-secondary">Back</a>
+            </div>
+        </div>
+        </form>
 
-    <form action="/encrypt" method="post" class="mt-3">
-        <div class="form-group">
-            <label for="algorithm">Select Algorithm:</label>
-            <select class="form-control" name="algorithm" required>
-                <option value="aes">AES</option>
-                <option value="aes_rsa">AES_RSA</option>
-                <option value="ecdhe">ECDHE</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="text">Text:</label>
-            <input type="text" class="form-control" name="text" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Encrypt</button>
-    </form>
+    </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -33,3 +55,5 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
+

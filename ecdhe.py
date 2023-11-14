@@ -72,7 +72,7 @@ def generate_random_p_256_secret(n):
     return candidate
 
 
-def initial():
+def eInitial(file):
 
     # NIST P-256, SP 800-186, chapter 4.2.1.3 page 13
     p = 115792089210356248762697446949407573530086143415290314195533631308867097853951
@@ -89,12 +89,21 @@ def initial():
     # Public-private key of Alice
     private_key_alice = generate_random_p_256_secret(n)
     public_key_alice = G * private_key_alice
-    with open("filePrivate_aes.pem", "wb") as f:
-    f.write(private_key_pem)
+    with open(os.path.join(directory_name, "encrypted_aes_key.txt"), "wb") as f:
+        f.write(encrypted_aes_key)
+
+
+
+def eDinitial(filename_):
 
     # Public-private key of Bob
+    n = 115792089210356248762697446949407573529996955224135760342422259061068512044369
     private_key_bob = generate_random_p_256_secret(n)
     public_key_bob = G * private_key_bob
+
+
+
+def checkKeys():
 
     # Shared key of Alice
     shared_key_alice = public_key_bob * private_key_alice
@@ -103,4 +112,34 @@ def initial():
     shared_key_bob = public_key_alice * private_key_bob
 
     # Verify both Alice and Bob arrived at the same shared key
-    assert (shared_key_alice == shared_key_bob)
+    if (shared_key_alice == shared_key_bob):
+        return "hey"
+
+
+
+
+def save_keys_and_ciphertext(ciphertext, encrypted_aes_key, recipient_private_key):
+    # Get the current date and time
+    current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Create a directory on the desktop to store keys and ciphertext
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    directory_name = os.path.join(desktop_path, f"E_keys_and_ciphertext_{current_datetime}")
+
+    # Create the directory
+    os.makedirs(directory_name) 
+
+    # Save encrypted AES key to a file
+    with open(os.path.join(directory_name, "encrypted_aes_key.txt"), "wb") as f:
+        f.write(encrypted_aes_key)
+
+    
+    with open(os.path.join(directory_name, "encrypted_private_key.pem"), "wb") as f:
+        f.write(encrypted_private_key)
+
+    # Save ciphertext to a file
+    
+    with open(os.path.join(directory_name, f"E_ciphertext_{current_datetime}.txt"), "wb") as f:
+        f.write(ciphertext)
+
+    print(f"Keys and ciphertext saved to directory: {directory_name}")

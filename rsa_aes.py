@@ -2,10 +2,16 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding as asymmetric_padding
-import os
+from cryptography.hazmat.primitives.ciphers.modes import CBC
 from cryptography.hazmat.primitives import hashes
 from datetime import datetime
 from cryptography.hazmat.primitives import serialization
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv() 
+
 
 def generate_rsa_key_pair():
     private_key = rsa.generate_private_key(
@@ -16,10 +22,9 @@ def generate_rsa_key_pair():
     public_key = private_key.public_key()
     return private_key, public_key
 
-def encrypt_aes_key_with_rsa(aes_key, recipient_public_key):
+def encrypt_aes_key_with_rsa(aes_key, plaintext, recipient_public_key):
 
-    print(aes_key," .  aes key")
-    cipherKey = recipient_public_key.encrypt(
+    cipherkey = recipient_public_key.encrypt(
         aes_key,
         asymmetric_padding.OAEP(
             mgf=asymmetric_padding.MGF1(algorithm=hashes.SHA256()),
@@ -27,32 +32,26 @@ def encrypt_aes_key_with_rsa(aes_key, recipient_public_key):
             label=None
         )
     )
-    print(cipherKey," .  aes key")
-    return cipherKey
-
-
-
-def aes_encrypt(plaintext, aes_key):
+    
    # Ensure that plaintext is of type bytes
-    if not isinstance(plaintext, bytes):
-        plaintext = plaintext.encode('utf-8')  # Assuming plaintext is a string, encode it to bytes
-
+   
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_data = padder.update(plaintext) + padder.finalize()
 
-    cipher = Cipher(algorithms.AES(aes_key), modes.ECB(), backend=default_backend())
+    iv = os.urandom(16);
+    cipher = Cipher(algorithms.AES(aes_key), CBC(iv))
     encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+    ciphertext = encryptor.update(padded_data)
 
-    return ciphertext
+    return   iv,ciphertext, cipherkey
 
-def save_keys_and_ciphertext(ciphertext, encrypted_aes_key, recipient_private_key):
+def save_keys_and_ciphertext(ciphertext,iv, encrypted_aes_key, recipient_private_key):
     # Get the current date and time
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Create a directory on the desktop to store keys and ciphertext
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    directory_name = os.path.join(desktop_path, f"keys_and_ciphertext_{current_datetime}")
+    directory_name = os.path.join(desktop_path, f"H_keys_and_ciphertext_{current_datetime}")
 
     # Create the directory
     os.makedirs(directory_name) 
@@ -65,16 +64,17 @@ def save_keys_and_ciphertext(ciphertext, encrypted_aes_key, recipient_private_ke
     encrypted_private_key = recipient_private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.BestAvailableEncryption(b"your-password")
+        encryption_algorithm=serialization.BestAvailableEncryption(b"abc")
     )
     with open(os.path.join(directory_name, "encrypted_private_key.pem"), "wb") as f:
         f.write(encrypted_private_key)
 
     # Save ciphertext to a file
-    with open(os.path.join(directory_name, f"ciphertext_{current_datetime}.txt"), "wb") as f:
+    with open(os.path.join(directory_name, f"H_ciphertext_{current_datetime}.txt"), "wb") as f:
         f.write(ciphertext)
-
-    print(f"Keys and ciphertext saved to directory: {directory_name}")
+    # Save iv to a file
+    with open(os.path.join(directory_name, f"cipher4.txt"), "wb") as f:
+        f.write(iv)
 
 def initial(plaintext):
     # Generate RSA key pair for the recipient
@@ -83,33 +83,34 @@ def initial(plaintext):
     # Generate a random AES key for the message
     aes_key = os.urandom(32)  # 256-bit key for AES-256
 
+
+    plaintext = plaintext.encode('utf-8')
+    
     # Encrypt the AES key with the recipient's public RSA key
-    encrypted_aes_key = encrypt_aes_key_with_rsa(aes_key, recipient_public_key)
-
-    # Encrypt the actual message with the AES key
-    ciphertext = aes_encrypt(plaintext, aes_key)
-
-    save_keys_and_ciphertext(ciphertext, encrypted_aes_key, recipient_private_key)
+    iv,ciphertext, cipherkey = encrypt_aes_key_with_rsa(aes_key,plaintext, recipient_public_key)
+    
+    
+   
+    save_keys_and_ciphertext(ciphertext, iv,cipherkey, recipient_private_key)
    
     return ciphertext
 
 
 def dinitial(filename_):
-   # Example usage
-    directory_name = f"keys_and_ciphertext_{filename_}" # Replace with the actual directory name
+  
+    directory_name = f"H_keys_and_ciphertext_{filename_}" # Replace with the actual directory name
     
-    directory_name = os.path.join("/Users/saivennelagarikapati/Desktop/", directory_name)
+    path = os.getenv("path")
+    directory_name = os.path.join(path, directory_name)
 
     print(directory_name,"directory name")
     # Load keys and ciphertext
-    encrypted_aes_key, encrypted_private_key, ciphertext = load_keys_and_ciphertext(directory_name,filename_)
+    encrypted_aes_key, encrypted_private_key, ciphertext,iv = load_keys_and_ciphertext(directory_name,filename_)
 
     # Decrypt using the loaded keys
-    decrypted_text = decrypt_using_keys(encrypted_aes_key, encrypted_private_key, ciphertext)
-    print("decryptin done",  decrypted_text)
-    # Print or use the decrypted text as needed
-    print("Decrypted Text:", decrypted_text.decode('utf-8'))
-
+    decrypted_text = decrypt_using_keys(encrypted_aes_key, encrypted_private_key, ciphertext,iv)
+   
+    return decrypted_text
 
 def load_keys_and_ciphertext(directory_name,filename_):
     try:
@@ -124,20 +125,24 @@ def load_keys_and_ciphertext(directory_name,filename_):
         encrypted_private_key = f.read()
 
     # Load ciphertext
-    with open(os.path.join(directory_name, f"ciphertext_{filename_}.txt"), "rb") as f:
+    with open(os.path.join(directory_name, f"H_ciphertext_{filename_}.txt"), "rb") as f:
         ciphertext = f.read()
 
-    return encrypted_aes_key, encrypted_private_key, ciphertext
+     # Load ciphertext
+    with open(os.path.join(directory_name, f"cipher4.txt"), "rb") as f:
+        iv = f.read()
 
-def decrypt_using_keys(encrypted_aes_key, encrypted_private_key, ciphertext):
+    return encrypted_aes_key, encrypted_private_key, ciphertext,iv
+
+def decrypt_using_keys(encrypted_aes_key, encrypted_private_key, ciphertext,iv):
     # Decrypt the recipient's private key
-    private_key = decrypt_private_key(encrypted_private_key, b"your-password")
+    private_key = decrypt_private_key(encrypted_private_key, b"abc")
 
     # Decrypt the AES key with the recipient's private key
     aes_key = decrypt_aes_key_with_rsa(encrypted_aes_key, private_key)
 
     # Decrypt the ciphertext using the decrypted AES key
-    decrypted_text = aes_decrypt(ciphertext, aes_key)
+    decrypted_text = aes_decrypt(ciphertext, aes_key,iv)
 
     return decrypted_text
 
@@ -158,10 +163,14 @@ def decrypt_aes_key_with_rsa(encrypted_aes_key, private_key):
     aes_key = private_key.decrypt(encrypted_aes_key, oaep_padding)
     return aes_key
 
-def aes_decrypt(ciphertext, aes_key):
-    iv = ciphertext[:16]  # Extract the IV from the ciphertext
-    cipher = Cipher(algorithms.AES(aes_key), modes.CFB(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    decrypted_text = decryptor.update(ciphertext[16:]) + decryptor.finalize()
-    return decrypted_text
+def aes_decrypt(ciphertext, recovered_key,iv):
+    # Decrypt padded plaintext
+    aes_cbc_cipher = Cipher(algorithms.AES(recovered_key), CBC(iv))
+    recovered_padded_plaintext = aes_cbc_cipher.decryptor().update(ciphertext)
+
+    # Remove padding
+    pkcs7_unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+    recovered_plaintext = pkcs7_unpadder.update(recovered_padded_plaintext) + pkcs7_unpadder.finalize()
+
+    return recovered_plaintext
 

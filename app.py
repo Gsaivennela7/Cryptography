@@ -6,17 +6,23 @@ import base64
 from stegano import lsb
 import time
 from rsa_aes import initial,dinitial
+from aes import aesInitial,aesDinitial
+from ecdhe import eInitial,eDinitial
 import os
+import psutil
 
 app = Flask(__name__)
 
 def measure_time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
+        start_cpu = psutil.cpu_percent()  # Measure CPU usage before function call
         result = func(*args, **kwargs)
         end_time = time.time()
+        end_cpu = psutil.cpu_percent()  # Measure CPU usage after function call
         elapsed_time = end_time - start_time
-        return result, elapsed_time
+        cpu_cycles = end_cpu - start_cpu
+        return result, elapsed_time, cpu_cycles
     return wrapper
 
 @app.route('/')
@@ -32,9 +38,9 @@ def encrypt():
     plaintext = request.form['text']
     algorithm = request.form['algorithm']
 
-    result = perform_encryption(plaintext, algorithm)
+    result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm)
     
-    return render_template('result.html', result=result, time=123)
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
 
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
@@ -53,47 +59,45 @@ def decrypt():
     # Check if the file has a name and is not empty
     if filename_ == '':
         return "Invalid file name."
-    split_result = filename_.split('_',1)
-    split_result = split_result[1].split('.',1)
+    
+
+    split_result = filename_.split('_',2)
+    split_result = split_result[2].split('.',1)
     parent_directory =  split_result[0]
 
     algorithm = request.form['algorithm']
 
-    result = perform_decryption( algorithm, parent_directory)
 
-    return render_template('result.html', result=result, time=123)
+    result, elapsed_time, cpu_cycles = perform_decryption( algorithm, parent_directory)
+   
 
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
+
+@measure_time
 def perform_encryption(plaintext, algorithm):
     if algorithm == 'aes':
-        cipherText = initial(plaintext);
-        return  cipherText;
-    elif algorithm == '3des':
-        cipherText = initial(plaintext);
+        cipherText = aesInitial(plaintext);
         return  cipherText;
     elif algorithm == 'aes_rsa':
         cipherText = initial(plaintext);
         return  cipherText;
     elif algorithm == 'dh':
-        secret_message = 'YourSecretMessage'
-        encoded_image = lsb.hide('path/to/your/image.png', secret_message)
-        return "Steganography successful!", 0
+        cipherText = eInitial(plaintext);
+        return  cipherText;
     else:
         return "Invalid algorithm", 0
 
+@measure_time
 def perform_decryption(algorithm, parent_directory):
     if algorithm == 'aes':
-        initial(cipherText)
-        return decrypted_text.decode(), 0
-    elif algorithm == '3des':
-        cipherText = initial(plaintext);
-        return  cipherText;
+        text = aesDinitial(parent_directory)
+        return text.decode('utf-8')
     elif algorithm == 'aes_rsa':
-        print("hdsdu",parent_directory)
-        plainText = dinitial(parent_directory)
-        return palinText
+        text = dinitial(parent_directory)
+        return text.decode('utf-8')
     elif algorithm == 'dh':
-        decoded_message = lsb.reveal('path/to/your/image.png')
-        return decoded_message
+        text = eDinitial(parent_directory)
+        return text.decode('utf-8')
     else:
         return "Invalid algorithm", 0
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryption App</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .square-button {
+            height: 150px;
+            width: 150px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <h1 class="text-center">Encryption App</h1>
+
+    <div class="button-container">
+        <!-- Encrypt Button -->
+        <div class="square-button bg-primary text-white" onclick="redirectTo('/encrypt')">
+            <h2 class="text-center">Encrypt</h2>
+        </div>
+
+        <!-- Add space between buttons for better visual separation -->
+        <div style="width: 20px;"></div>
+
+        <!-- Decrypt Button -->
+        <div class="square-button bg-success text-white" onclick="redirectTo('/decrypt')">
+            <h2 class="text-center">Decrypt</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS and Popper.js -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.8/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    function redirectTo(page) {
+        window.location.href = page;
+    }
+</script>
+
+</body>
+</html>

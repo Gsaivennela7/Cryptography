@@ -13,6 +13,7 @@ import time
 from rsa_aes import initial,dinitial
 from aes import aesInitial,aesDinitial
 from ecdhe import eInitial,eDinitial
+from dbconfig import connectDb
 import os
 import psutil
 
@@ -21,9 +22,8 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Set to a random value
 
 # Setup MongoDB connection
-client = MongoClient('mongodb://localhost:27017/')
-db = client['user_database']
-users = db['users']
+db = connectDb()
+users = db.Users
 
 @app.route('/', methods=['GET'])
 def login_page():

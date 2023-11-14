@@ -4,22 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encryption</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Encryption</h1>
+<body class="container mt-5">
 
-    <form action="/encrypt" method="post">
-        <label for="algorithm">Select Algorithm: </label>
-        <select name="algorithm" required>
-            <option value="aes">AES_RSA</option>
-            <option value="dh">ECDHE</option>
-            <option value="steganography">Steganography</option>
-        </select>
-        <br>
-        <label for="text">Text: </label>
-        <input type="text" name="text" required>
-        <br>
-        <button type="submit">Encrypt</button>
+    <h1 class="text-center">Encryption</h1>
+
+    <form action="/encrypt" method="post" class="mt-3">
+        <div class="form-group">
+            <label for="algorithm">Select Algorithm:</label>
+            <select class="form-control" name="algorithm" required>
+                <option value="aes">AES</option>
+                <option value="aes_rsa">AES_RSA</option>
+                <option value="ecdhe">ECDHE</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="text">Text:</label>
+            <input type="text" class="form-control" name="text" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Encrypt</button>
     </form>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

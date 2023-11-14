@@ -5,7 +5,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import base64
 from stegano import lsb
 import time
-from rsa_aes import initial
+from rsa_aes import initial,dinitial
+import os
 
 app = Flask(__name__)
 
@@ -31,9 +32,9 @@ def encrypt():
     plaintext = request.form['text']
     algorithm = request.form['algorithm']
 
-    result, elapsed_time = perform_encryption(plaintext, algorithm)
+    result = perform_encryption(plaintext, algorithm)
     
-    return render_template('result.html', result=result, time=elapsed_time)
+    return render_template('result.html', result=result, time=123)
 
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
@@ -41,43 +42,58 @@ def decrypt_form():
 
 @app.route('/decrypt', methods=['POST'])
 def decrypt():
-    ciphertext = request.form['text']
+    # Check if a file was uploaded
+    if 'file' not in request.files:
+        return "No file provided for decryption."
+
+    file = request.files['file']
+
+    filename_ = file.filename
+
+    # Check if the file has a name and is not empty
+    if filename_ == '':
+        return "Invalid file name."
+    split_result = filename_.split('_',1)
+    split_result = split_result[1].split('.',1)
+    parent_directory =  split_result[0]
+
     algorithm = request.form['algorithm']
 
-    result, elapsed_time = perform_decryption(ciphertext, algorithm)
+    result = perform_decryption( algorithm, parent_directory)
 
-    return render_template('result.html', result=result, time=elapsed_time)
+    return render_template('result.html', result=result, time=123)
 
 def perform_encryption(plaintext, algorithm):
     if algorithm == 'aes':
-    
+        cipherText = initial(plaintext);
+        return  cipherText;
+    elif algorithm == '3des':
+        cipherText = initial(plaintext);
+        return  cipherText;
+    elif algorithm == 'aes_rsa':
+        cipherText = initial(plaintext);
+        return  cipherText;
     elif algorithm == 'dh':
-        parameters = dh.generate_parameters(generator=2, key_size=2048)
-        private_key = parameters.generate_private_key()
-        public_key = private_key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-        return public_key.decode(), 0
-    elif algorithm == 'steganography':
         secret_message = 'YourSecretMessage'
         encoded_image = lsb.hide('path/to/your/image.png', secret_message)
         return "Steganography successful!", 0
     else:
         return "Invalid algorithm", 0
 
-def perform_decryption(ciphertext, algorithm):
+def perform_decryption(algorithm, parent_directory):
     if algorithm == 'aes':
-        key = b'SuperSecretKey12'  # Replace with a secure key management mechanism
-        cipher = Cipher(algorithms.AES(key), modes.ECB())
-        decryptor = cipher.decryptor()
-        decrypted_text = decryptor.update(base64.b64decode(ciphertext.encode())) + decryptor.finalize()
+        initial(cipherText)
         return decrypted_text.decode(), 0
+    elif algorithm == '3des':
+        cipherText = initial(plaintext);
+        return  cipherText;
+    elif algorithm == 'aes_rsa':
+        print("hdsdu",parent_directory)
+        plainText = dinitial(parent_directory)
+        return palinText
     elif algorithm == 'dh':
-        return "Decryption not applicable for Diffie-Hellman", 0
-    elif algorithm == 'steganography':
         decoded_message = lsb.reveal('path/to/your/image.png')
-        return decoded_message, 0
+        return decoded_message
     else:
         return "Invalid algorithm", 0
 

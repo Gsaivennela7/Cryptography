@@ -64,7 +64,7 @@ class ECPoint(object):
         return ECPoint(curve=self.curve, x=x3, y=y3)
 
 
-# NIST FIBS PUB 186-4, B.4.2 p. 63
+
 def generate_random_p_256_secret(n):
     candidate = 0
     while not 0 < candidate < n:

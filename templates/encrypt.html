@@ -22,6 +22,25 @@
 </head>
 <body>
 
+     <!-- Navigation Bar -->
+     <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!-- User icon and Username on the left -->
+            <a class="navbar-brand" href="#">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                {{ username }}
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ml-auto">
+                    <!-- Logout button on the right -->
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="custom-form">
         <h1 class="text-center">Encryption</h1>
         <form action="/encrypt" method="post" class="mt-3">

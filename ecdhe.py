@@ -1,145 +1,180 @@
 import os
+from datetime import datetime
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
-class ECurve(object):
-
-    def __init__(self, a, b, p):
-        self.a = a
-        self.b = b
-        self.p = p
-
-    def inf(self):
-        return ECPoint(curve=self, x=None, y=None)
-
-    def __eq__(self, other):
-        return self.a == other.a and self.b == other.b and self.p == other.p
-
-
-class ECPoint(object):
-
-    def __init__(self, curve, x, y):
-        self.curve = curve
-        self.x = x
-        self.y = y
-
-    def copy(self):
-        return ECPoint(curve=self.curve, x=self.x, y=self.y)
-
-    def is_inf(self):
-        return self == self.curve.inf()
-
-    def __eq__(self, other):
-        return self.curve == other.curve and self.x == other.x and self.y == other.y
-
-    # https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication
-
-    # Point multiplication
-    def __mul__(self, s):
-        bits = [s & (1 << i) for i in range(s.bit_length()-1, -1, -1)]
-        res = self.curve.inf()
-        for bit in bits:
-            res = res + res
-            if bit:
-                res = res + self
-        return res
-
-    # Point addition
-    def __add__(self, other):
-        if self.is_inf():
-            return other.copy()
-        if other.is_inf():
-            return self.copy()
-        x1, y1 = self.x, self.y
-        x2, y2 = other.x, other.y
-        p = self.curve.p
-        if x1 % p == x2 % p and y1 % p == (-y2) % p:
-            return self.curve.inf()
-        if self != other:
-            s = (y2 - y1) * pow(x2 - x1, -1, p) % p
-        else:
-            # Point doubling
-            s = (3 * pow(x1, 2) + self.curve.a) * pow(2 * y1, -1, p) % p
-        x3 = (pow(s, 2) - x1 - x2) % p
-        y3 = (s * (x1 - x3) - y1) % p
-        return ECPoint(curve=self.curve, x=x3, y=y3)
-
-
-
-def generate_random_p_256_secret(n):
-    candidate = 0
-    while not 0 < candidate < n:
-        candidate = int.from_bytes(os.urandom((n.bit_length() + 7) // 8), 'big')
-    return candidate
-
-
-def eInitial(file):
-
-    # NIST P-256, SP 800-186, chapter 4.2.1.3 page 13
-    p = 115792089210356248762697446949407573530086143415290314195533631308867097853951
-    n = 115792089210356248762697446949407573529996955224135760342422259061068512044369
-    a = 115792089210356248762697446949407573530086143415290314195533631308867097853948
-    b = 41058363725152142129326129780047268409114441015993725554835256314039467401291
-    g_x = 48439561293906451759052585252797914202762949526041747995844080717082404635286
-    g_y = 36134250956749795798585127919587881956611106672985015071877198253568414405109
-
-    # Create P-256 elliptic curve and generator point
-    p_256_curve = ECurve(a, b, p)
-    G = ECPoint(p_256_curve, g_x, g_y)
-
-    # Public-private key of Alice
-    private_key_alice = generate_random_p_256_secret(n)
-    public_key_alice = G * private_key_alice
-    with open(os.path.join(directory_name, "encrypted_aes_key.txt"), "wb") as f:
-        f.write(encrypted_aes_key)
-
-
-
-def eDinitial(filename_):
-
-    # Public-private key of Bob
-    n = 115792089210356248762697446949407573529996955224135760342422259061068512044369
-    private_key_bob = generate_random_p_256_secret(n)
-    public_key_bob = G * private_key_bob
-
-
-
-def checkKeys():
-
-    # Shared key of Alice
-    shared_key_alice = public_key_bob * private_key_alice
-
-    # Shared key of Bob
-    shared_key_bob = public_key_alice * private_key_bob
-
-    # Verify both Alice and Bob arrived at the same shared key
-    if (shared_key_alice == shared_key_bob):
-        return "hey"
-
-
-
-
-def save_keys_and_ciphertext(ciphertext, encrypted_aes_key, recipient_private_key):
+def save_keys_and_ciphertext(ciphertext,shared_key_alice,public_key_alice,private_key_alice):
     # Get the current date and time
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Create a directory on the desktop to store keys and ciphertext
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    directory_name = os.path.join(desktop_path, f"E_keys_and_ciphertext_{current_datetime}")
+    directory_name = os.path.join(desktop_path, f"E_Alice_{current_datetime}")
 
     # Create the directory
     os.makedirs(directory_name) 
 
-    # Save encrypted AES key to a file
-    with open(os.path.join(directory_name, "encrypted_aes_key.txt"), "wb") as f:
-        f.write(encrypted_aes_key)
+    # Save Alice's public key to a file
+    serialized_public_key = public_key_alice.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    with open(os.path.join(directory_name, "public_key_alice.pem"), "wb") as f:
+        f.write(serialized_public_key)
+
+
+    # Save shared key to a file
+    with open(os.path.join(directory_name, "shared_key_alice.txt"), "wb") as f:
+        f.write(shared_key_alice)
 
     
+    # Save recipient's private key to a file (encrypted)
+    encrypted_private_key = private_key_alice.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.BestAvailableEncryption(b"abc")
+    )
     with open(os.path.join(directory_name, "encrypted_private_key.pem"), "wb") as f:
         f.write(encrypted_private_key)
 
     # Save ciphertext to a file
-    
     with open(os.path.join(directory_name, f"E_ciphertext_{current_datetime}.txt"), "wb") as f:
         f.write(ciphertext)
 
     print(f"Keys and ciphertext saved to directory: {directory_name}")
+
+def eInitial(plaintext,public_key_bob):
+
+    # Bob generates his key pair
+    private_key_alice = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    public_key_alice= private_key_alice.public_key()
+
+
+    # Shared key of Alice
+    shared_key_alice = private_key_alice.exchange(ec.ECDH(), public_key_bob)
+
+
+    #emcode
+    plaintext = plaintext.encode('utf-8')
+
+    #encrypt
+    ciphertext = aes_encrypt(plaintext,shared_key_alice)
+
+    #save
+    save_keys_and_ciphertext(ciphertext,shared_key_alice,public_key_alice,private_key_alice)
+
+    return ciphertext  
+
+def load_keys_and_ciphertext(alice_directory_name,directory_name,filename_):
+    
+    # Load shared key
+    with open(os.path.join(alice_directory_name, "shared_key_alice.txt"), "rb") as f:
+        shared_key_alice = f.read()
+
+    # Load public key
+    with open(os.path.join(alice_directory_name, "public_key_alice.pem"), "rb") as f:
+        public_key_alice = f.read()
+
+    # Load encrypted private key
+    with open(os.path.join(directory_name, "private_key_bob.pem"), "rb") as f:
+        encrypted_private_key = f.read()
+
+    # Load ciphertext
+    with open(os.path.join(alice_directory_name, f"E_ciphertext_{filename_}.txt"), "rb") as f:
+        ciphertext = f.read()
+
+
+    return shared_key_alice,public_key_alice,encrypted_private_key,ciphertext
+
+def eDinitial(filename_):
+
+    directory_name = f"E_BOB_{filename_}" # Replace with the actual directory name
+    alice_directory_name = f"E_Alice_{filename_}"
+    path = os.getenv("path")
+    directory_name = os.path.join(path, directory_name)
+    alice_directory_name = os.path.join(path, alice_directory_name)
+    
+    # Load keys and ciphertext
+    shared_key_alice,public_key_alice,encrypted_private_key_bob,ciphertext = load_keys_and_ciphertext(alice_directory_name,directory_name,filename_);
+    
+    private_key_bob = decrypt_private_key(encrypted_private_key_bob, b"abc")
+
+    
+    # Deserialize the public key
+    public_key_alice = serialization.load_pem_public_key(
+    public_key_alice,
+    backend=default_backend()
+)
+    # Shared key of Bob
+    shared_key_bob = private_key_bob.exchange(ec.ECDH(), public_key_alice)
+    
+    # Verify both Alice and Bob arrived at the same shared key
+    if (shared_key_alice == shared_key_bob):
+        decrypted_text = aes_decrypt(shared_key_bob,ciphertext)
+    
+    return decrypted_text
+
+     
+
+def aes_encrypt(plaintext,shared_key_alice):
+    
+    cipher = Cipher(algorithms.AES(shared_key_alice), modes.CFB(b'\x00'*16), backend=default_backend())
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+    return ciphertext
+
+def aes_decrypt(shared_key_bob,ciphertext):
+    cipher = Cipher(algorithms.AES(shared_key_bob), modes.CFB(b'\x00'*16), backend=default_backend())
+    decryptor = cipher.decryptor()
+    decrypted_text = decryptor.update(ciphertext) + decryptor.finalize()
+
+    return decrypted_text
+
+def getBobKey():
+    
+
+    # Bob generates his key pair
+    private_key_bob = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    public_key_bob = private_key_bob.public_key()
+
+
+    # private_key_bob = generate_random_p_256_secret(n)
+    # public_key_bob = G * private_key_bob
+
+    saveBobPrivateKey(private_key_bob)
+
+    return public_key_bob
+
+
+def saveBobPrivateKey(private_key_bob):
+    # Get the current date and time
+    current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Create a directory on the desktop to store keys and ciphertext
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    directory_name = os.path.join(desktop_path, f"E_BOB_{current_datetime}")
+
+    # Create the directory
+    os.makedirs(directory_name) 
+
+
+     # Save recipient's private key to a file (encrypted)
+    encrypted_private_key = private_key_bob.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.BestAvailableEncryption(b"abc")
+    )
+    with open(os.path.join(directory_name, "private_key_bob.pem"), "wb") as f:
+        f.write(encrypted_private_key)
+
+
+def decrypt_private_key(encrypted_private_key, password):
+    private_key = serialization.load_pem_private_key(
+        encrypted_private_key,
+        password,
+        backend=default_backend()
+    )
+    return private_key

@@ -12,7 +12,7 @@ from stegano import lsb
 import time
 from rsa_aes import initial,dinitial
 from aes import aesInitial,aesDinitial
-from ecdhe import eInitial,eDinitial
+from ecdhe import eInitial,eDinitial,getBobKey
 from dbconfig import connectDb
 import os
 import psutil
@@ -64,6 +64,15 @@ def measure_time(func):
         return result, elapsed_time, cpu_cycles
     return wrapper
 
+def is_valid_algorithm(filename, algorithm):
+    if filename.startswith('H') and algorithm != 'aes_rsa':
+        return False
+    elif filename.startswith('A') and algorithm != 'aes':
+        return False
+    elif filename.startswith('E') and algorithm != 'dh':
+        return False
+    return True
+
 @app.route('/home')
 def home():
     username = session.get('username', None)  # Get the username from the session
@@ -80,13 +89,10 @@ def encrypt():
     plaintext = request.form['text']
     algorithm = request.form['algorithm']
     username = session.get('username', None)
-    result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm)
+    result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm,username)
     
     return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
 
-
-    
-    
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
     username = session.get('username', None)
@@ -105,27 +111,26 @@ def decrypt():
     # Check if the file has a name and is not empty
     if filename_ == '':
         return "Invalid file name."
-    
+
+    algorithm = request.form['algorithm']
+
+    if not filename_.startswith(('H', 'A', 'E')) or not is_valid_algorithm(filename_,algorithm):
+        return render_template('display.html', result="Inavlid Algorithm please select Valid Algorithm")
+   
+    username = session.get('username', None)
 
     split_result = filename_.split('_',2)
     split_result = split_result[2].split('.',1)
     parent_directory =  split_result[0]
 
-    algorithm = request.form['algorithm']
+   
 
+    result, elapsed_time, cpu_cycles = perform_decryption( algorithm, parent_directory,username)
 
-
-    result, elapsed_time, cpu_cycles = perform_decryption( algorithm, parent_directory)
-
-    result = perform_decryption( algorithm, parent_directory)
-    username = session.get('username', None)
-
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
-
-
-    
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles,username =username)
+ 
 @measure_time
-def perform_encryption(plaintext, algorithm):
+def perform_encryption(plaintext, algorithm,username):
     if algorithm == 'aes':
         cipherText = aesInitial(plaintext);
         return  cipherText;
@@ -133,13 +138,14 @@ def perform_encryption(plaintext, algorithm):
         cipherText = initial(plaintext);
         return  cipherText;
     elif algorithm == 'dh':
-        cipherText = eInitial(plaintext);
+        key = getBobKey();
+        cipherText = eInitial(plaintext,key);
         return  cipherText;
     else:
         return "Invalid algorithm", 0
 
 @measure_time
-def perform_decryption(algorithm, parent_directory):
+def perform_decryption(algorithm, parent_directory,username):
     if algorithm == 'aes':
         text = aesDinitial(parent_directory)
         return text.decode('utf-8')

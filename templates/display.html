@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh; /* 100% of the viewport height */
+        margin: 0;
+    }
+    .content {
+        text-align: center;
+    }
+</style>
+<body>
+    <div class="container">
+            <div class="left-section">
+                <h2>{{ result }}</h2>         
+                <a href="/decrypt" class="signup-button">Back</a>
+            </div>
+</body>
+</html>

@@ -3,12 +3,31 @@ body, html {
     margin: 0;
     font-family: Arial, sans-serif;
   }
-  
-  .container {
+
+  .navbar {
+    position: absolute; /* or 'fixed' if you want it to stay at the top when scrolling */
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Add any other styles for your navbar here */
+  }
+
+
+  /* .container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh; /* This ensures that the container is at least the height of the viewport */
+    /* background-color: #f4f7f6; */
+  /* }  */
+
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* This will be 100% of the viewport height */
+    padding-top: 70px; /* This pushes the container down to make space for the navbar */
+    box-sizing: border-box; /* This ensures padding is included in the height */
     background-color: #f4f7f6;
   }
   
@@ -85,3 +104,9 @@ body, html {
         /* Other hover styles for the button */
     }
     
+
+    
+    .custom-form {
+        /* Your custom form styles, but make sure they don't include display: flex that affects positioning */
+        width: 50%; /* or any other width as per your design */
+    }

@@ -91,7 +91,7 @@ def encrypt():
     username = session.get('username', None)
     result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm,username)
     
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles, username=username)
 
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
@@ -128,7 +128,8 @@ def decrypt():
     result, elapsed_time, cpu_cycles = perform_decryption( algorithm, parent_directory,username)
 
     return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles,username =username)
- 
+    
+
 @measure_time
 def perform_encryption(plaintext, algorithm,username):
     if algorithm == 'aes':

@@ -82,7 +82,7 @@ def encrypt():
     username = session.get('username', None)
     result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm)
     
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles, username=username)
 
 
     
@@ -120,7 +120,7 @@ def decrypt():
     result = perform_decryption( algorithm, parent_directory)
     username = session.get('username', None)
 
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles)
+    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles, username=username)
 
 
     

@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from pymongo import MongoClient
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session
 
 import base64
 from stegano import lsb
@@ -32,6 +33,7 @@ def login():
     password = request.form.get('password')
     user = users.find_one({'username': username})
     if user and check_password_hash(user['password'], password):
+        session['username'] = username
         return redirect(url_for('home'))
     return 'Invalid username/password'
 
@@ -58,12 +60,14 @@ def measure_time(func):
 
 @app.route('/home')
 def home():
-    return render_template('index.html')
+    username = session.get('username', None)  # Get the username from the session
+    return render_template('index.html', username=username)
 
 
 @app.route('/encrypt', methods=['GET'])
 def encrypt_form():
-    return render_template('encrypt.html')
+    username = session.get('username', None)
+    return render_template('encrypt.html', username=username)
 
 @app.route('/encrypt', methods=['POST'])
 def encrypt():
@@ -71,12 +75,15 @@ def encrypt():
     algorithm = request.form['algorithm']
 
     result = perform_encryption(plaintext, algorithm)
+
+    username = session.get('username', None)
     
-    return render_template('result.html', result=result, time=123)
+    return render_template('result.html', result=result, time=123, username=username)
 
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
-    return render_template('decrypt.html')
+    username = session.get('username', None)
+    return render_template('decrypt.html', username=username)
 
 @app.route('/decrypt', methods=['POST'])
 def decrypt():
@@ -98,8 +105,9 @@ def decrypt():
     algorithm = request.form['algorithm']
 
     result = perform_decryption( algorithm, parent_directory)
+    username = session.get('username', None)
 
-    return render_template('result.html', result=result, time=123)
+    return render_template('result.html', result=result, time=123, username=username)
 
 def perform_encryption(plaintext, algorithm):
     if algorithm == 'aes':
@@ -134,6 +142,12 @@ def perform_decryption(algorithm, parent_directory):
         return decoded_message
     else:
         return "Invalid algorithm", 0
+    
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login_page'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

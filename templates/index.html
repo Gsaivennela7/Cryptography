@@ -6,6 +6,7 @@
     <title>Encryption App</title>
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
         .button-container {
             display: flex;
@@ -25,6 +26,27 @@
 <body>
 
 <div class="container mt-4">
+
+    
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!-- User icon and Username on the left -->
+            <a class="navbar-brand" href="#">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                {{ username }}
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ml-auto">
+                    <!-- Logout button on the right -->
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
     <h1 class="text-center">Encryption App</h1>
 
     <div class="button-container">

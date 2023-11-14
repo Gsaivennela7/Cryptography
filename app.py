@@ -1,7 +1,11 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from pymongo import MongoClient
+from bson import ObjectId
+from werkzeug.security import generate_password_hash, check_password_hash
+
 import base64
 from stegano import lsb
 import time
@@ -9,6 +13,39 @@ from rsa_aes import initial,dinitial
 import os
 
 app = Flask(__name__)
+
+app.secret_key = 'your_secret_key_here'  # Set to a random value
+
+# Setup MongoDB connection
+client = MongoClient('mongodb://localhost:27017/')
+db = client['user_database']
+users = db['users']
+
+@app.route('/', methods=['GET'])
+def login_page():
+    return render_template('login.html')
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    user = users.find_one({'username': username})
+    if user and check_password_hash(user['password'], password):
+        return redirect(url_for('home'))
+    return 'Invalid username/password'
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        hashed_password = generate_password_hash(password)
+        users.insert_one({'username': username, 'email': email, 'password': hashed_password})
+        flash('Signup successful! Please log in.', 'success')
+        return redirect(url_for('login_page'))
+    return render_template('signup.html')
 
 def measure_time(func):
     def wrapper(*args, **kwargs):
@@ -19,9 +56,10 @@ def measure_time(func):
         return result, elapsed_time
     return wrapper
 
-@app.route('/')
-def index():
+@app.route('/home')
+def home():
     return render_template('index.html')
+
 
 @app.route('/encrypt', methods=['GET'])
 def encrypt_form():

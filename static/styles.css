@@ -1,0 +1,87 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* This ensures that the container is at least the height of the viewport */
+    background-color: #f4f7f6;
+  }
+  
+  .form-box {
+    display: flex;
+    width: 50%; /* Adjust width as per your layout requirement */
+    max-width: 800px; /* You can adjust this as per your design */
+  }
+  
+  .left-section, .form-section {
+    flex: 1; /* This will ensure that both children of .form-box take up equal space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+  }
+  
+  .left-section {
+    background-color: #2c5aa0;
+    color: white;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  
+  .form-section {
+    background-color: #ffffff;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+    
+    .form-section h3 {
+      margin-top: 0;
+    }
+    
+    .form-input {
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    .form-input input {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .form-input button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background-color: #2c5aa0;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .form-input button:hover {
+      background-color: #22497c;
+    }
+    
+    .signup-button {
+        color: black; /* This sets the text color to white */
+        /* Other styles for the button */
+        background-color: white; /* Example background color; change as needed */
+        text-decoration: none; /* Removes underline from links */
+        padding: 10px 20px; /* Example padding; change as needed */
+        border-radius: 5px; /* Rounds the corners of the button */
+        display: inline-block; /* Allows setting padding and other box model properties */
+    }
+    
+    .signup-button:hover {
+        color: black; /* Keeps the text color white even when hovering */
+        /* Other hover styles for the button */
+    }
+    

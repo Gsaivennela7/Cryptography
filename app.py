@@ -7,6 +7,7 @@ from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 
+
 import base64
 from stegano import lsb
 import time
@@ -61,7 +62,7 @@ def measure_time(func):
         end_cpu = psutil.cpu_percent()  # Measure CPU usage after function call
         elapsed_time = end_time - start_time
         cpu_cycles = end_cpu - start_cpu
-        return result, elapsed_time, cpu_cycles
+        return result, elapsed_time, abs(cpu_cycles)
     return wrapper
 
 def is_valid_algorithm(filename, algorithm):

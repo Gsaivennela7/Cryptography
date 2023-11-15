@@ -140,10 +140,6 @@ def getBobKey():
     private_key_bob = ec.generate_private_key(ec.SECP256R1(), default_backend())
     public_key_bob = private_key_bob.public_key()
 
-
-    # private_key_bob = generate_random_p_256_secret(n)
-    # public_key_bob = G * private_key_bob
-
     saveBobPrivateKey(private_key_bob)
 
     return public_key_bob

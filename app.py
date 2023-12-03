@@ -1,9 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import dh
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from pymongo import MongoClient
-from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 
@@ -92,7 +87,7 @@ def encrypt():
     username = session.get('username', None)
     result, elapsed_time, cpu_cycles  = perform_encryption(plaintext, algorithm,username)
     
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles, username=username)
+    return render_template('result.html', type="Encryption",result=result, time=elapsed_time, cpu_cycles=cpu_cycles, username=username)
 
 @app.route('/decrypt', methods=['GET'])
 def decrypt_form():
@@ -128,7 +123,7 @@ def decrypt():
 
     result, elapsed_time, cpu_cycles = perform_decryption( algorithm, parent_directory,username)
 
-    return render_template('result.html', result=result, time=elapsed_time, cpu_cycles=cpu_cycles,username =username)
+    return render_template('result.html', type="Decryption",result=result, time=elapsed_time, cpu_cycles=cpu_cycles,username =username)
     
 
 @measure_time
